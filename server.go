@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -16,10 +17,12 @@ var (
 
 func main() {
 	connInfo := fmt.Sprintf(
-		"user=postgres dbname=postgres password=%s host=%s port=%s sslmode=disable",
-		"mypass",
-		os.Getenv("DB_PORT_5432_TCP_ADDR"),
-		os.Getenv("DB_PORT_5432_TCP_PORT"),
+		"user=%s dbname=%s password=%s host=%s port=%s sslmode=disable",
+		"postgres",
+		"postgres",
+		os.Getenv("DB_ENV_POSTGRES_PASSWORD"),
+		os.Getenv("HELLODOCKER_POSTGRES_1_PORT_5432_TCP_ADDR"),
+		os.Getenv("HELLODOCKER_POSTGRES_1_PORT_5432_TCP_PORT"),
 	)
 
 	var err error
@@ -28,7 +31,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err = db.Ping(); err != nil {
+	for i := 0; i < 5; i++ {
+		time.Sleep(time.Duration(i) * time.Second)
+
+		if err = db.Ping(); err == nil {
+			break
+		}
+		log.Println(err)
+	}
+	if err != nil {
 		log.Fatal(err)
 	}
 
