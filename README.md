@@ -8,6 +8,17 @@ This is a 4 container project. I'm using `docker-compose` to bring it all up
 * 1 Nginx container. This will be used as a reverse proxy between Go and the
 wild wild web.
 
+## Setup Docker
+
+If you're on OS X, then you'll need to use Docker Machine to setup Docker first.
+Because Docker uses some Linux-specific kernel features, you'll need VirtualBox
+in order to run Docker.
+
+```
+docker-machine create --driver virtualbox default
+eval $(docker-machine env default)
+```
+
 ## Download, Build, and Run
 ```
 git clone git@github.com:variadico/hellodocker.git
@@ -16,8 +27,8 @@ docker-compose build
 docker-compose up -d
 ```
 
-Then fire up Chrome and point it to the Docker host IP. I'm on a Mac, so I have
-to visit whatever IP address `boot2docker ip` gives me.
+Then fire up Chrome and point it to the Docker host IP. You can get this IP by
+running `docker-machine ip default`.
 
 If you see
 `Cannot start container 8675309: Cannot link to a non running container` then
@@ -39,7 +50,7 @@ This file will create a new container image by copying the Go source in your
 current directory, building it in the container, and running it in the
 container. If you want to see how this is happening check out the
 `golang:onbuild` `Dockerfile`
-[here](https://github.com/docker-library/golang/blob/396f40c6188614c7acd6d8299a0ea71030a056a6/1.4/onbuild/Dockerfile).
+[here].
 
 ### `docker-compose.yml`
 This file describes the 4 containers that our app will use. You should read the
@@ -81,10 +92,12 @@ your code.
 
 ```
 connInfo := fmt.Sprintf(
-	"user=postgres dbname=postgres password=%s host=%s port=%s sslmode=disable",
-	"mypass",
-	os.Getenv("DB_PORT_5432_TCP_ADDR"),
-	os.Getenv("DB_PORT_5432_TCP_PORT"),
+	"user=%s dbname=%s password=%s host=%s port=%s sslmode=disable",
+	"postgres",
+	"postgres",
+	os.Getenv("DB_ENV_POSTGRES_PASSWORD"),
+	os.Getenv("HELLODOCKER_POSTGRES_1_PORT_5432_TCP_ADDR"),
+	os.Getenv("HELLODOCKER_POSTGRES_1_PORT_5432_TCP_PORT"),
 )
 ```
 
@@ -101,3 +114,5 @@ of the linked container. You can verify this using this command.
 ```
 docker exec hellodocker_go_1 cat /etc/hosts
 ```
+
+[here]: (https://github.com/docker-library/golang/blob/396f40c6188614c7acd6d8299a0ea71030a056a6/1.4/onbuild/Dockerfile)
